@@ -1,0 +1,2 @@
+#!/bin/bash
+pstae -d , -- | cut -d -f1
