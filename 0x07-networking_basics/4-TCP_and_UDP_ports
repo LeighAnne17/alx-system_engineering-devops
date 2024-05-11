@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
-#script displays listening ports
+#This script displays listening ports
 
 echo "Active Internet connections (only servers)"
-echo "Proto Recv-Q Send-Q Local Address	Foreign Address	State	PID/Program name"
-netstat -tuln | grep '^tcp' | awk '{print $1, $4, $NF}' | while read -r proto local foreign; do
-pid=$(lsof -n -i "$local" | grep LISTEN |awk '{print $2}')
-program=$(ps -p "$pid" -o comm=)
-echo "$proto	-	-	$local	$foreign	LISTEN		$pid/$program"
-done
+echo "Proto Recv-Q Send-Q Local Address		Foreign Address		State		PID/Program name"
+netstat -tuln | awk '$1 == "tcp" "print $1"\t"$2\t"$3\t\t\t"$7"\t"$NF}'
 
-netstat -uln | grep '^udp' | awl '{print $1, $4, $NF}' | while read -r proto local foreign; do
-pid=$(lsof -n -i "$local" | grep LISTEN | awk '{print $2}')
-program=$(ps -p "$pid" -o comm=)
-echo "$proto	-	-	$local	$foreign	-	$pid/$program"
-done
+netstat -uln | awk '$1 == "udp" {print $1"\t"$2"\t"$3"\t\t\t"$7"\t"$NF"'
+
+echo "Activate UNIX domain sockets (only servers)"
+echo "Proto RefCnt Flags	Type	State	I-Node	PID/Program name	Path"
+netstat -lx | awk '$1 == "unix" {print $1"\t"$2"\t"$3\t\t"$4"\t"$5"\t"$6"\t\t"$7}'
+
