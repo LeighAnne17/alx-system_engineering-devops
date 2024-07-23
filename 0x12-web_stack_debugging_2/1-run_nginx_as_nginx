@@ -1,33 +1,24 @@
 #!/usr/bin/env bash
-# This script configures the container to run nginx as the nginx user and listen on port 8080
+# This script configures Nginx to run as the 'nginx' user and listen on all IPs on port 8080
 
-# Ensure nginx is installed
-apt-get update && apt-get install -y nginx
-
-# Create a new nginx configuration file for port 8080
-cat <<EOL > /etc/nginx/sites-available/default
-server {
-    listen 8080 default_server;
-    listen [::]:8080 default_server;
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-    server_name _;
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-EOL
-
-# Update the nginx user
-sed -i 's/user www-data;/user nginx;/g' /etc/nginx/nginx.conf
-
-# Create the nginx user if it does not exist
-if ! id -u nginx > /dev/null 2>&1; then
-    useradd -r -d /var/www/html -s /bin/false nginx
+# Ensure Nginx is installed
+if ! command -v nginx &> /dev/null
+then
+    echo "Nginx could not be found. Please install Nginx."
+    exit 1
 fi
 
-# Set the correct permissions
-chown -R nginx:nginx /var/www/html
+# Change Nginx user in the configuration
+sudo sed -i 's/user www-data;/user nginx;/' /etc/nginx/nginx.conf
 
-# Start nginx
-service nginx restart
+# Modify the Nginx configuration to listen on port 8080
+sudo sed -i 's/listen 80 default_server;/listen 8080 default_server;/' /etc/nginx/sites-available/default
+
+# Restart Nginx to apply changes
+sudo systemctl restart nginx
+
+# Verify that Nginx is running as 'nginx' user
+ps aux | grep '[n]ginx'
+
+# Verify that Nginx is listening on port 8080
+nc -z 0 8080 && echo "Nginx is listening on port 8080" || echo "Nginx is NOT listening on port 8080
