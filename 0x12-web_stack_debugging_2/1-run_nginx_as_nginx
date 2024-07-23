@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 # This script configures Nginx to run as the 'nginx' user and listen on all IPs on port 8080
 
-# Ensure Nginx is installed
-if ! command -v nginx &> /dev/null
-then
-    echo "Nginx could not be found. Please install Nginx."
-    exit 1
-fi
-
 # Update Nginx configuration to run as 'nginx' user
 sudo sed -i 's/^user www-data;/user nginx;/' /etc/nginx/nginx.conf
 
@@ -19,11 +12,15 @@ sudo sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:8080 default_serve
 sudo systemctl restart nginx
 
 # Verify that Nginx is running as 'nginx' user
-ps aux | grep '[n]ginx' | grep -v grep | awk '{print $1}' | uniq
+if ps aux | grep -E '[n]ginx: master process' | grep -q 'nginx'; then
+    echo "Nginx is running as the 'nginx' user."
+else
+    echo "Nginx is NOT running as the 'nginx' user."
+fi
 
 # Verify that Nginx is listening on port 8080
 if nc -zv 0 8080 2>&1 | grep -q 'succeeded'; then
-    echo "Nginx is listening on port 8080"
+    echo "Nginx is listening on port 8080."
 else
-    echo "Nginx is NOT listening on port 8080"
+    echo "Nginx is NOT listening on port 8080."
 fi
