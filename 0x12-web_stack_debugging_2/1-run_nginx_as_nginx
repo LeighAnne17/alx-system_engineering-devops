@@ -8,17 +8,22 @@ then
     exit 1
 fi
 
-# Change Nginx user in the configuration
-sudo sed -i 's/user www-data;/user nginx;/' /etc/nginx/nginx.conf
+# Update Nginx configuration to run as 'nginx' user
+sudo sed -i 's/^user www-data;/user nginx;/' /etc/nginx/nginx.conf
 
-# Modify the Nginx configuration to listen on port 8080
-sudo sed -i 's/listen 80 default_server;/listen 8080 default_server;/' /etc/nginx/sites-available/default
+# Update Nginx configuration to listen on port 8080
+sudo sed -i 's/listen 80;/listen 8080;/' /etc/nginx/sites-available/default
+sudo sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:8080 default_server;/' /etc/nginx/sites-available/default
 
 # Restart Nginx to apply changes
 sudo systemctl restart nginx
 
 # Verify that Nginx is running as 'nginx' user
-ps aux | grep '[n]ginx'
+ps aux | grep '[n]ginx' | grep -v grep | awk '{print $1}' | uniq
 
 # Verify that Nginx is listening on port 8080
-nc -z 0 8080 && echo "Nginx is listening on port 8080" || echo "Nginx is NOT listening on port 8080
+if nc -zv 0 8080 2>&1 | grep -q 'succeeded'; then
+    echo "Nginx is listening on port 8080"
+else
+    echo "Nginx is NOT listening on port 8080"
+fi
