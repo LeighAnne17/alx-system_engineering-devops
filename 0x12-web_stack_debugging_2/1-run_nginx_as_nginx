@@ -1,55 +1,7 @@
 #!/usr/bin/env bash
-# This script configures the container to run nginx as the nginx user and listen on port 8080
-
-set -e
-
-# Ensure nginx is installed
-echo "Installing nginx..."
-apt-get update && apt-get install -y nginx
-
-# Create a new nginx configuration file for port 8080
-echo "Configuring nginx to listen on port 8080..."
-cat <<EOL > /etc/nginx/sites-available/default
-server {
-    listen 8080 default_server;
-    listen [::]:8080 default_server;
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-    server_name _;
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-EOL
-
-# Update the nginx user
-echo "Updating nginx user to 'nginx'..."
-sed -i 's/user www-data;/user nginx;/g' /etc/nginx/nginx.conf
-
-# Create the nginx user if it does not exist
-echo "Checking if 'nginx' user exists..."
-if ! id -u nginx > /dev/null 2>&1; then
-    echo "Creating 'nginx' user..."
-    useradd -r -d /var/www/html -s /bin/false nginx
-fi
-
-# Set the correct permissions
-echo "Setting permissions on /var/www/html..."
-chown -R nginx:nginx /var/www/html
-
-# Test nginx configuration
-echo "Testing nginx configuration..."
-nginx -t
-
-# Start nginx
-echo "Restarting nginx service..."
-service nginx restart
-
-# Verify nginx is running as the nginx user
-echo "Verifying nginx is running as the 'nginx' user..."
-ps auxff | grep ngin[x]
-
-# Verify nginx is listening on port 8080
-echo "Checking if nginx is listening on port 8080..."
-nc -z 0 8080 ; echo $?
-
+# A BASH Script that runs nignx webserver as nginx and also configures nginx to
+# listen to port 8080
+pkill apache2
+sed -i 's/80/8080/g' /etc/nginx/sites-available/default
+chmod 644 /etc/nginx/nginx.conf
+sudo -u nginx service nginx restart
