@@ -1,36 +1,29 @@
-import json
-import requests
+#!/usr/bin/python3
+""" Python script that uses REST API to returns information about a given
+employee's TODO list progress """
+from requests import get
+from sys import argv
 
-def fetch_data():
-    """Fetch the data from the API or any source."""
-    url = 'https://jsonplaceholder.typicode.com/todos'  # Replace with your data source
-    response = requests.get(url)
-    return response.json()
 
-def transform_data(data):
-    """Transform the data into the required format."""
-    tasks_by_user = {}
-    for task in data:
-        user_id = str(task['userId'])
-        if user_id not in tasks_by_user:
-            tasks_by_user[user_id] = []
-        task_info = {
-            "username": task['username'],
-            "task": task['title'],
-            "completed": task['completed']
-        }
-        tasks_by_user[user_id].append(task_info)
-    return tasks_by_user
+def get_todos(employee_id):
+    """ Uses get to pull todo tasks of passed in employee_id """
+    users = get("https://jsonplaceholder.typicode.com/users/" +
+                employee_id).json()
+    todos = get("https://jsonplaceholder.typicode.com/todos?userId=" +
+                employee_id).json()
+    if not users or not todos:
+        return ("Not a valid JSON")
+    name = users.get('name')
+    completed = [task.get('title') for task in todos if task.get('completed')]
+    total_tasks_count = len(todos)
+    completed_count = len(completed)
+    print("Employee {} is done with tasks({}/{}):".format(name,
+                                                          completed_count,
+                                                          total_tasks_count))
+    for t in completed:
+        print("\t {}".format(t))
 
-def save_to_json(data, filename):
-    """Save the transformed data to a JSON file."""
-    with open(filename, 'w') as file:
-        json.dump(data, file, indent=4)
-
-def main():
-    data = fetch_data()
-    transformed_data = transform_data(data)
-    save_to_json(transformed_data, 'todo_all_employees.json')
 
 if __name__ == "__main__":
-    main()
+    if len(argv) > 1:
+        get_todos(argv[1])
