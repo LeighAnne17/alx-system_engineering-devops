@@ -1,40 +1,27 @@
 #!/usr/bin/python3
-import requests
-import sys
+""" Extends task 1 to export data in the CSV information """
+from requests import get
+from sys import argv
 import csv
 
-def export_to_csv(employee_id):
-    # Base URL of the API
-    base_url = 'https://jsonplaceholder.typicode.com'
-    
-    # Get employee information
-    user_response = requests.get(f'{base_url}/users/{employee_id}')
-    user_data = user_response.json()
-    username = user_data.get('username')
 
-    # Get employee TODO list
-    todos_response = requests.get(f'{base_url}/todos', params={'userId': employee_id})
-    todos_data = todos_response.json()
+def to_csv(employee_id):
+    """ Uses get to pull data and exports data in a CSV format """
+    users = get("https://jsonplaceholder.typicode.com/users/" +
+                employee_id).json()
+    todos = get("https://jsonplaceholder.typicode.com/todos?userId=" +
+                employee_id).json()
+    if not users or not todos:
+        return ("Not a valid JSON")
+    with open('{}.csv'.format(employee_id), 'w') as file:
+        writer = csv.writer(file, delimiter=',', quoting=csv.QUOTE_ALL)
+        for task in todos:
+            writer.writerow([employee_id,
+                             users.get('username'),
+                             task.get('completed'),
+                             task.get('title')])
 
-    # Define the filename
-    filename = f"{employee_id}.csv"
 
-    # Open the CSV file for writing
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        # Write each row to the CSV
-        for task in todos_data:
-            user_id = task.get('userId')
-            task_title = task.get('title')
-            task_completed = task.get('completed')
-            writer.writerow([user_id, username, task_completed, task_title])
-
-    print(f"Data exported to {filename}")
-
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python3 1-export_to_CSV.py <employee_id>")
-        sys.exit(1)
-
-    employee_id = int(sys.argv[1])
-    export_to_csv(employee_id)
+if __name__ == "__main__":
+    if len(argv) > 1:
+        to_csv(argv[1])
