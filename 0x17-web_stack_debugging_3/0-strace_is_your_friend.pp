@@ -5,8 +5,8 @@ package { 'php5':
 }
 
 service { 'apache2':
-  ensure  => running,
-  enable  => true,
+  ensure    => running,
+  enable    => true,
   subscribe => Package['php5'],
 }
 
