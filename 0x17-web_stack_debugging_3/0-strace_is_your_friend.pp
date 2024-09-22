@@ -1,13 +1,12 @@
-# This Puppet manifest installs PHP and restarts Apache
-package 
-{
- 'php5':
+# This Puppet manifest fixes the Apache 500 error by installing missing packages and restarting Apache.
+
+package { 'php5':
   ensure => installed,
 }
 
-service 
-{ 'apache2':
+service { 'apache2':
   ensure  => running,
   enable  => true,
   subscribe => Package['php5'],
 }
+
